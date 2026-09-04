@@ -1,0 +1,7 @@
+coverage/
+.nuxt
+.output
+dist
+node_modules
+pnpm-lock.yaml
+auto-imports.d.ts

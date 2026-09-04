@@ -1,0 +1,71 @@
+/* Dark is the default palette — no [data-theme] attribute yet (first paint,
+   no-JS) falls back to dark. :root[data-theme="light"] overrides below. */
+:root {
+  color-scheme: dark;
+
+  --color-bg: #0f172a;
+  --color-surface: #1e293b;
+  --color-surface-muted: #17223b;
+  --color-border: #334155;
+  --color-border-strong: #475569;
+  --color-text: #e2e8f0;
+  --color-text-secondary: #94a3b8;
+  --color-text-tertiary: #64748b;
+  --color-accent: #3b82f6;
+  --color-accent-strong: #60a5fa;
+  --color-accent-soft-bg: rgba(59, 130, 246, 0.16);
+  --color-accent-contrast: #ffffff;
+  --color-accent-disabled: #1e3a5f;
+  --color-accent-ring: rgba(96, 165, 250, 0.25);
+  --color-danger: #f87171;
+  --shadow-color: rgba(0, 0, 0, 0.45);
+
+  --badge-high-bg: rgba(34, 197, 94, 0.18);
+  --badge-high-fg: #4ade80;
+  --badge-medium-bg: rgba(245, 158, 11, 0.18);
+  --badge-medium-fg: #fbbf24;
+  --badge-low-bg: rgba(148, 163, 184, 0.18);
+  --badge-low-fg: #cbd5e1;
+
+  --chip-high-bg: #16a34a;
+  --chip-medium-bg: #d97706;
+  --chip-low-bg: #64748b;
+}
+
+:root[data-theme="light"] {
+  color-scheme: light;
+
+  --color-bg: #f1f5f9;
+  --color-surface: #ffffff;
+  --color-surface-muted: #f8fafc;
+  --color-border: #e2e8f0;
+  --color-border-strong: #94a3b8;
+  --color-text: #0f172a;
+  --color-text-secondary: #475569;
+  --color-text-tertiary: #64748b;
+  --color-accent: #2563eb;
+  --color-accent-strong: #1d4ed8;
+  --color-accent-soft-bg: #eff6ff;
+  --color-accent-contrast: #ffffff;
+  --color-accent-disabled: #93c5fd;
+  --color-accent-ring: rgba(37, 99, 235, 0.12);
+  --color-danger: #b91c1c;
+  --shadow-color: rgba(15, 23, 42, 0.14);
+
+  --badge-high-bg: #dcfce7;
+  --badge-high-fg: #15803d;
+  --badge-medium-bg: #fef3c7;
+  --badge-medium-fg: #b45309;
+  --badge-low-bg: #e2e8f0;
+  --badge-low-fg: #475569;
+
+  --chip-high-bg: #16a34a;
+  --chip-medium-bg: #d97706;
+  --chip-low-bg: #64748b;
+}
+
+html,
+body {
+  background: var(--color-bg);
+  color: var(--color-text);
+}

@@ -1,0 +1,6 @@
+{
+  "env": {
+    "maMelilitThresholdPct": 2,
+    "defaultBars": 300
+  }
+}

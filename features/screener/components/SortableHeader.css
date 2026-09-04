@@ -1,0 +1,42 @@
+.col-sort {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  border: none;
+  background: none;
+  padding: 0;
+  margin: 0;
+  font: inherit;
+  text-transform: inherit;
+  letter-spacing: inherit;
+  color: inherit;
+  cursor: pointer;
+}
+
+.col-sort:hover {
+  color: var(--color-text);
+}
+
+.col-sort__icon {
+  width: 1rem;
+  height: 1rem;
+  flex-shrink: 0;
+  fill: currentColor;
+  opacity: 0.45;
+  transition:
+    transform 0.15s ease,
+    opacity 0.15s ease;
+}
+
+.col-sort__icon--desc {
+  transform: rotate(180deg);
+}
+
+.col-sort--active,
+.col-sort--active:hover {
+  color: var(--color-accent);
+}
+
+.col-sort--active .col-sort__icon {
+  opacity: 1;
+}

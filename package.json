@@ -1,0 +1,72 @@
+{
+  "name": "idx-screener-app",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "nuxt build",
+    "dev": "nuxt dev",
+    "generate": "nuxt generate",
+    "preview": "nuxt preview",
+    "postinstall": "nuxt prepare",
+    "lint:js": "eslint --ext \".ts,.vue\" --ignore-path .gitignore .",
+    "lint:prettier": "prettier --check .",
+    "lint": "pnpm lint:js && pnpm lint:prettier",
+    "lint:fix": "prettier --write --list-different . && pnpm run lint:js --fix",
+    "test": "vitest --dom --pool=forks",
+    "test:ui": "vitest --ui --coverage",
+    "test:ui:nocoverage": "vitest --ui",
+    "coverage": "vitest run --dom --pool=forks --coverage",
+    "prepare": "husky",
+    "type-check": "NODE_OPTIONS='--max-old-space-size=8192' vue-tsc --noEmit",
+    "test:related": "vitest related --run"
+  },
+  "lint-staged": {
+    "*.{js,ts,vue}": [
+      "eslint --fix",
+      "prettier --write"
+    ],
+    "*.{json,css,scss,md}": [
+      "prettier --write"
+    ]
+  },
+  "dependencies": {
+    "@pinia/nuxt": "^1.0.2",
+    "@vueuse/core": "^14.4.0",
+    "@vueuse/nuxt": "^14.4.0",
+    "nuxt": "^4.5.2",
+    "pinia": "^4.0.3",
+    "technicalindicators": "^3.1.0",
+    "vue": "^3.5.42",
+    "vue-router": "^5.3.0",
+    "xlsx": "^0.18.5",
+    "yahoo-finance2": "^4.0.2"
+  },
+  "devDependencies": {
+    "@nuxt/test-utils": "^3.21.0",
+    "@nuxtjs/eslint-config-typescript": "^12.1.0",
+    "@pinia/testing": "^2.0.1",
+    "@testing-library/vue": "^8.1.0",
+    "@typescript-eslint/parser": "^8.56.1",
+    "@vitest/coverage-istanbul": "^3.2.4",
+    "@vitest/ui": "^3.2.4",
+    "@vue/test-utils": "^2.4.6",
+    "eslint": "^8.57.1",
+    "eslint-config-prettier": "^9.1.0",
+    "eslint-plugin-prettier": "^5.5.5",
+    "eslint-plugin-vitest": "^0.5.4",
+    "happy-dom": "^15.11.7",
+    "husky": "^9.1.7",
+    "lint-staged": "^16.3.2",
+    "prettier": "^3.3.3",
+    "typescript": "^5.6.3",
+    "vitest": "^3.2.4",
+    "vitest-fetch-mock": "^0.4.3",
+    "vitest-sonar-reporter": "^2.0.0",
+    "vue-tsc": "^2.2.12"
+  },
+  "packageManager": "pnpm@10.34.3",
+  "engines": {
+    "node": ">=22 <23",
+    "pnpm": ">=10"
+  }
+}
