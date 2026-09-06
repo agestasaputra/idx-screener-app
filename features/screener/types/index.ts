@@ -24,6 +24,10 @@ export interface ScreenerResult {
   sector: string | null;
   lastClose: number;
   matches: CriterionMatch[];
+  // 5-minute closes for the most recent trading day, most-recent last — a
+  // small intraday preview for a sparkline, separate from the daily history
+  // used for criteria detection. May be empty if intraday data is unavailable.
+  sparkline: number[];
 }
 
 export interface ScreenerResponse {

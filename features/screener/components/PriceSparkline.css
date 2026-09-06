@@ -1,0 +1,24 @@
+.sparkline {
+  display: block;
+  flex-shrink: 0;
+}
+
+.sparkline__baseline {
+  stroke: var(--color-border-strong);
+  stroke-width: 1;
+  stroke-dasharray: 2 2;
+}
+
+.sparkline__line {
+  stroke-width: 1.5;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+
+.sparkline__line--up {
+  stroke: var(--chip-high-bg);
+}
+
+.sparkline__line--down {
+  stroke: var(--color-danger);
+}

@@ -19,6 +19,12 @@ const MS_PER_DAY = 24 * 60 * 60 * 1000;
 const CALENDAR_PADDING = 1.6;
 // In-flight Yahoo Finance requests when screening the whole universe.
 const FETCH_CONCURRENCY = 10;
+// Calendar days of intraday history to request for the sparkline, wide enough
+// to guarantee the latest trading session is included across weekends/holidays.
+const SPARKLINE_LOOKBACK_DAYS = 5;
+// Jakarta (IDX) has no DST, so a fixed UTC+7 offset is enough to bucket
+// intraday quotes by local trading day.
+const JAKARTA_OFFSET_MS = 7 * 60 * 60 * 1000;
 
 const NAME_BY_SYMBOL = new Map(
   idxTickers.map((ticker) => [ticker.symbol, ticker.name]),
@@ -57,6 +63,40 @@ async function fetchSector(symbol: string): Promise<string | null> {
   }
 }
 
+function jakartaDateKey(date: Date): string {
+  return new Date(date.getTime() + JAKARTA_OFFSET_MS)
+    .toISOString()
+    .slice(0, 10);
+}
+
+// 5-minute closes for the most recent trading day, for the row sparkline.
+async function fetchIntradaySparkline(symbol: string): Promise<number[]> {
+  try {
+    const period2 = new Date();
+    const period1 = new Date(
+      period2.getTime() - SPARKLINE_LOOKBACK_DAYS * MS_PER_DAY,
+    );
+    const chart = await yahooFinance.chart(toJakartaTicker(symbol), {
+      period1,
+      period2,
+      interval: "5m",
+    });
+
+    const quotes = chart.quotes.filter(
+      (quote): quote is typeof quote & { close: number } =>
+        quote.close !== null,
+    );
+    if (quotes.length === 0) return [];
+
+    const lastDay = jakartaDateKey(quotes[quotes.length - 1]!.date);
+    return quotes
+      .filter((quote) => jakartaDateKey(quote.date) === lastDay)
+      .map((quote) => quote.close);
+  } catch {
+    return [];
+  }
+}
+
 async function fetchBars(symbol: string, bars: number): Promise<OhlcBar[]> {
   const period2 = new Date();
   const period1 = new Date(
@@ -82,10 +122,10 @@ async function fetchBars(symbol: string, bars: number): Promise<OhlcBar[]> {
 
 function evaluateSymbol(
   symbol: string,
-  data: { bars: OhlcBar[]; sector: string | null },
+  data: { bars: OhlcBar[]; sector: string | null; sparkline: number[] },
   thresholdPct: number,
 ): ScreenerResult {
-  const { bars, sector } = data;
+  const { bars, sector, sparkline } = data;
   const closes = bars.map((bar) => bar.close);
   const matches = [
     detectMaMelilit(closes, thresholdPct),
@@ -99,6 +139,7 @@ function evaluateSymbol(
     sector,
     lastClose: at(closes, closes.length - 1),
     matches,
+    sparkline,
   };
 }
 
@@ -111,12 +152,17 @@ async function screenOne(
   error?: { symbol: string; message: string };
 }> {
   try {
-    const [ohlc, sector] = await Promise.all([
+    const [ohlc, sector, sparkline] = await Promise.all([
       fetchBars(symbol, bars),
       fetchSector(symbol),
+      fetchIntradaySparkline(symbol),
     ]);
     return {
-      result: evaluateSymbol(symbol, { bars: ohlc, sector }, thresholdPct),
+      result: evaluateSymbol(
+        symbol,
+        { bars: ohlc, sector, sparkline },
+        thresholdPct,
+      ),
     };
   } catch (err) {
     return {

@@ -1,0 +1,55 @@
+{
+  // Vscode settings
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "editor.formatOnSave": true,
+  "editor.formatOnPaste": true,
+  "editor.codeActionsOnSave": {
+    // "source.fixAll": "explicit",
+    // "source.fixAll.eslint": "explicit"
+  },
+  "eslint.validate": [
+    "javascript",
+    "javascriptreact",
+    "vue",
+    "html",
+    "typescript",
+    "typescriptreact"
+  ],
+  "prettier.printWidth": 80,
+  "jiraSmartCommit.baseUrl": "https://jurnal.atlassian.net",
+  "jiraSmartCommit.ai.model": "claude-haiku-4-5",
+  "jiraSmartCommit.ai.provider": "anthropic",
+  "jiraSmartCommit.email": "agesta.budy@mekari.com",
+  "chat.useNestedAgentsMdFiles": true
+  // Default formatter
+
+  // Prettier settings
+  // "prettier.singleQuote": true,
+  // "prettier.semi": false,
+  // "prettier.trailingComma": "none",
+
+  // ESLint settings
+  // "eslint.format.enable": true,
+
+  // "editor.formatOnSave": true,
+  // "vetur.format.defaultFormatter.html": "none",
+  // "eslint.validate": [
+  //   "javascript"
+  // ],
+  // "editor.codeActionsOnSave": {
+  //   "source.fixAll.eslint": "explicit"
+  // },
+  // "editor.bracketPairColorization.enabled": false
+  // "[vue]": {
+  //   "editor.defaultFormatter": "octref.vetur"
+  // },
+  // "[javascript]": {
+  //   "editor.defaultFormatter": "esbenp.prettier-vscode"
+  // },
+  // "prettier.semi": true,
+  // "prettier.trailingComma": "es5",
+  // "workbench.iconTheme": "material-icon-theme",
+  // "editor.defaultFormatter": null,
+  // "editor.stickyScroll.scrollWithEditor": false,
+  // "livePreview.defaultPreviewPath": "/coverage/lcov-report/index.html"
+}

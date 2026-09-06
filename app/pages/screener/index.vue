@@ -440,15 +440,18 @@ const progressPercent = computed(() => {
           >
             <td>
               <div class="ticker">
-                <a
-                  :href="`https://id.tradingview.com/chart/?symbol=${result.symbol}`"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  class="ticker__symbol"
-                >
-                  {{ result.symbol }}
-                </a>
-                <span class="ticker__name">{{ result.name }}</span>
+                <div class="ticker__info">
+                  <a
+                    :href="`https://id.tradingview.com/chart/?symbol=${result.symbol}`"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="ticker__symbol"
+                  >
+                    {{ result.symbol }}
+                  </a>
+                  <span class="ticker__name">{{ result.name }}</span>
+                </div>
+                <ScreenerPriceSparkline :values="result.sparkline" />
               </div>
             </td>
             <td class="col-close">{{ result.lastClose.toFixed(0) }}</td>
