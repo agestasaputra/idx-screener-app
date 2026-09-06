@@ -1,0 +1,210 @@
+.controls {
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+  flex-shrink: 0;
+}
+
+.mode-toggle {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.mode-option {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.45rem 0.9rem;
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  font-size: 0.875rem;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.mode-option input {
+  accent-color: var(--color-accent);
+}
+
+.mode-option--active {
+  border-color: var(--color-accent);
+  background: var(--color-accent-soft-bg);
+  color: var(--color-accent-strong);
+  font-weight: 600;
+}
+
+.hint {
+  color: var(--color-text-tertiary);
+  font-size: 0.9rem;
+  line-height: 1.5;
+  flex-shrink: 0;
+}
+
+.hint--inline {
+  margin: 0;
+}
+
+.hint-inline-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  min-width: 0;
+}
+
+.hint--truncated {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.hint__toggle {
+  align-self: flex-start;
+  border: none;
+  background: none;
+  padding: 0;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--color-accent);
+  cursor: pointer;
+}
+
+.hint__toggle:hover {
+  text-decoration: underline;
+}
+
+.advanced {
+  font-size: 0.85rem;
+  color: var(--color-text-secondary);
+}
+
+.advanced summary {
+  cursor: pointer;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.advanced__field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  margin-top: 0.6rem;
+}
+
+.advanced__input {
+  width: 100%;
+  font-size: 0.85rem;
+  padding: 0.4rem 0.6rem;
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  box-sizing: border-box;
+  background: var(--color-surface);
+  color: var(--color-text);
+}
+
+.advanced__input:focus {
+  outline: none;
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 2px var(--color-accent-ring);
+}
+
+.symbols-input {
+  width: 100%;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.9rem;
+  padding: 0.65rem 0.75rem;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  resize: vertical;
+  box-sizing: border-box;
+  background: var(--color-surface);
+  color: var(--color-text);
+  transition: border-color 0.15s ease;
+}
+
+.symbols-input:focus {
+  outline: none;
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 3px var(--color-accent-ring);
+}
+
+.run-button {
+  width: 100%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  background: var(--color-accent);
+  color: var(--color-accent-contrast);
+  border: none;
+  border-radius: 8px;
+  padding: 0.6rem 1.2rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  box-sizing: border-box;
+  transition: background 0.15s ease;
+}
+
+.run-button:hover:not(:disabled) {
+  background: var(--color-accent-strong);
+}
+
+.run-button:disabled {
+  background: var(--color-accent-disabled);
+  cursor: not-allowed;
+}
+
+.spinner {
+  width: 0.85rem;
+  height: 0.85rem;
+  border: 2px solid rgba(255, 255, 255, 0.5);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.progress {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.progress__header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.75rem;
+  font-size: 0.85rem;
+}
+
+.progress__info {
+  color: var(--color-text-secondary);
+}
+
+.progress__percent {
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--color-text);
+}
+
+.progress-bar {
+  height: 0.5rem;
+  border-radius: 999px;
+  background: var(--color-surface-muted);
+  overflow: hidden;
+}
+
+.progress-bar__fill {
+  height: 100%;
+  background: var(--color-accent);
+  border-radius: 999px;
+  transition: width 0.25s ease;
+}

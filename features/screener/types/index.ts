@@ -1,3 +1,5 @@
+export type Mode = "manual" | "full";
+
 export type ScreenerCriterion =
   "ma_melilit" | "adam_eve" | "bullish_divergence";
 

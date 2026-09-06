@@ -190,7 +190,8 @@ export default defineEventHandler(async (event): Promise<ScreenerResponse> => {
 
   const config = useRuntimeConfig();
   const bars = Number(query.bars) || Number(config.public.defaultBars);
-  const thresholdPct = Number(config.public.maMelilitThresholdPct);
+  const thresholdPct =
+    Number(query.thresholdPct) || Number(config.public.maMelilitThresholdPct);
 
   const outcomes = await mapWithConcurrency(
     symbols,

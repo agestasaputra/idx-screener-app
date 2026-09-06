@@ -55,7 +55,7 @@ const { scheme, toggle } = useColorScheme();
 
 .layout {
   height: 100%;
-  max-width: 1080px;
+  max-width: 1680px;
   margin: 0 auto;
   padding: 2rem 1.5rem 3rem;
   box-sizing: border-box;

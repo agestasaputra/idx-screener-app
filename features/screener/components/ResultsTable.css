@@ -1,0 +1,150 @@
+.table-wrap {
+  padding: 0;
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+th,
+td {
+  text-align: left;
+  padding: 0.65rem 1rem;
+  vertical-align: top;
+}
+
+.header-row th {
+  background: var(--color-surface-muted);
+  color: var(--color-text-secondary);
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  border-bottom: 1px solid var(--color-border);
+  position: sticky;
+  top: 0;
+}
+
+.data-row {
+  border-bottom: 1px solid var(--color-border);
+  transition: background 0.1s ease;
+}
+
+.data-row:hover {
+  background: var(--color-surface-muted);
+}
+
+.col-close {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.col-sector {
+  color: var(--color-text-secondary);
+  white-space: nowrap;
+}
+
+.ticker {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.ticker__info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  min-width: 0;
+}
+
+.ticker__symbol {
+  font-weight: 700;
+  color: var(--color-text);
+  text-decoration: none;
+  width: fit-content;
+}
+
+.ticker__symbol:hover {
+  color: var(--color-accent-strong);
+  text-decoration: underline;
+}
+
+.ticker__name {
+  font-size: 0.8rem;
+  color: var(--color-text-tertiary);
+}
+
+.col-matched {
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.col-criterion {
+  min-width: 160px;
+}
+
+.match {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.25rem;
+}
+
+.match__detail {
+  color: var(--color-text-tertiary);
+  font-size: 0.85rem;
+}
+
+.match__empty {
+  color: var(--color-text-tertiary);
+}
+
+.badge {
+  display: inline-block;
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  padding: 0.1rem 0.5rem;
+  border-radius: 999px;
+}
+
+.badge--high {
+  background: var(--badge-high-bg);
+  color: var(--badge-high-fg);
+}
+
+.badge--medium {
+  background: var(--badge-medium-bg);
+  color: var(--badge-medium-fg);
+}
+
+.badge--low {
+  background: var(--badge-low-bg);
+  color: var(--badge-low-fg);
+}
+
+.empty-state {
+  text-align: center;
+  color: var(--color-text-tertiary);
+  padding: 1.5rem 1rem;
+}
+
+.link-button {
+  border: none;
+  background: none;
+  color: var(--color-accent);
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0;
+  margin-left: 0.4rem;
+}
+
+.link-button:hover {
+  text-decoration: underline;
+}

@@ -6,6 +6,7 @@ import { $fetch } from "#imports";
 export interface RunOptions {
   symbols: string[];
   bars?: number;
+  thresholdPct?: number;
   chunkSize?: number;
 }
 
@@ -54,7 +55,11 @@ export function useScreener(): UseScreenerReturn {
     try {
       for (const chunk of chunks) {
         const chunkResponse = await $fetch<ScreenerResponse>("/api/screener", {
-          query: { symbols: chunk.join(","), bars: options.bars },
+          query: {
+            symbols: chunk.join(","),
+            bars: options.bars,
+            thresholdPct: options.thresholdPct,
+          },
         });
         results.push(...chunkResponse.results);
         errors.push(...chunkResponse.errors);
