@@ -1,4 +1,4 @@
-import type { CriterionMatch } from "../types";
+import type { CriteriaMatch } from "../types";
 import { DYNAMIC_MA_PERIODS } from "../constants";
 import { buildDynamicMaSeries } from "./maSeries";
 import { at } from "./arrayAt";
@@ -38,7 +38,7 @@ function countOrderFlips(seriesByPeriod: number[][]): number {
 export function detectMaMelilit(
   closes: number[],
   thresholdPct: number,
-): CriterionMatch | null {
+): CriteriaMatch | null {
   const aligned = buildDynamicMaSeries(closes);
   const lastIndex = closes.length - 1;
   const latest = [
@@ -67,7 +67,7 @@ export function detectMaMelilit(
     flips > 0 ? "high" : spreadPct < thresholdPct / 2 ? "medium" : "low";
 
   return {
-    criterion: "ma_melilit",
+    criteria: "ma_melilit",
     confidence,
     detail: `MA3/5/10/20/50 spread ${spreadPct.toFixed(2)}% (threshold ${thresholdPct}%), ${flips} crossover(s) in the last ${WEAVE_WINDOW} bars`,
   };

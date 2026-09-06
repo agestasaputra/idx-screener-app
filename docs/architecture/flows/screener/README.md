@@ -1,6 +1,6 @@
 ---
 topic: screener
-status: ready
+status: stale
 related: [config-and-runtime, shared-and-theming, testing-and-quality]
 code:
   - app/pages/screener/index.vue
@@ -26,7 +26,7 @@ code:
 
 ## TL;DR
 
-The whole product. A user types comma-separated IDX tickers (or picks "whole IHSG"), the page calls `GET /api/screener`, which fetches daily OHLCV bars per ticker from Yahoo Finance and runs three independent chart-pattern heuristics — **MA Melilit**, **Adam & Eve**, **Bullish Divergence** — against each. Matches come back with a `confidence` (low/medium/high) per criterion; the client derives an aggregate **conviction** score, then lets the user filter, sort, and export the table.
+The whole product. A user types comma-separated IDX tickers (or picks "whole IHSG"), the page calls `GET /api/screener`, which fetches daily OHLCV bars per ticker from Yahoo Finance and runs three independent chart-pattern heuristics — **MA Melilit**, **Adam & Eve**, **Bullish Divergence** — against each. Matches come back with a `confidence` (low/medium/high) per criteria; the client derives an aggregate **conviction** score, then lets the user filter, sort, and export the table.
 
 ## Entry Points
 
@@ -54,7 +54,7 @@ sequenceDiagram
         API->>Y: chart(SYMBOL.JK, period1..period2, interval=1d)
         Y-->>API: OHLCV bars
         API->>D: evaluateSymbol(closes, thresholdPct)
-        D-->>API: CriterionMatch[] (0-3 matches)
+        D-->>API: CriteriaMatch[] (0-3 matches)
     end
     API-->>C: { results: ScreenerResult[], errors: {symbol, message}[] }
     C-->>P: response (reactive ref)
@@ -71,9 +71,9 @@ sequenceDiagram
 
 ## The three detectors
 
-All three take a plain `number[]` of closing prices (and sometimes a threshold) and return `CriterionMatch | null` — no shared base class, no framework, just pure functions. Each is a heuristic, not a validated trading signal (see repo [README.md](../../../../README.md)).
+All three take a plain `number[]` of closing prices (and sometimes a threshold) and return `CriteriaMatch | null` — no shared base class, no framework, just pure functions. Each is a heuristic, not a validated trading signal (see repo [README.md](../../../../README.md)).
 
-| Criterion | File | What it checks |
+| Criteria | File | What it checks |
 |---|---|---|
 | **MA Melilit** ("weaving") | `features/screener/utils/detectMaMelilit.ts:38` | The 5 dynamic SMAs (periods 3/5/10/20/50, `DYNAMIC_MA_PERIODS` in `features/screener/constants/index.ts:12`) are within `thresholdPct` of each other (dispersion), and counts how many times any two swap relative order over the last `WEAVE_WINDOW = 10` bars (`detectMaMelilit.ts:6`) — more flips ⇒ higher confidence. |
 | **Adam & Eve** | `features/screener/utils/detectAdamEve.ts:19` | Takes the last two swing lows (`findSwingLowIndices`, lookback ±3 bars); requires a swing high between them and the two lows within `MAX_BOTTOM_DIFF_PCT = 4%` of each other. Confidence rises if the first low is measurably "sharper" than the second (`sharpness()`, a cheap slope proxy — not real curve-fitting). |
@@ -92,7 +92,7 @@ Shared building blocks:
 
 Everything below `useScreener()`'s response lives entirely in `app/pages/screener/index.vue` as Vue `computed` refs — there is no second API call:
 
-- **Filters** (`index.vue:34-114`): free-text symbol/name search, last-close min/max range, and multi-select chips for criterion, confidence, and conviction. All combine with AND semantics (`filteredResults`, `index.vue:116`).
+- **Filters** (`index.vue:34-114`): free-text symbol/name search, last-close min/max range, and multi-select chips for criteria, confidence, and conviction. All combine with AND semantics (`filteredResults`, `index.vue:116`).
 - **Sorting** (`index.vue:128-176`): by symbol, last close, conviction (via `CONVICTION_RANK`), or match count. Toggled via `ScreenerSortableHeader` (`features/screener/components/SortableHeader.vue`), which just emits a `sort` event — the parent owns direction state.
 - **Column filter popovers**: `features/screener/components/ColumnFilterPopover.vue` — a `Teleport`-to-body popover positioned via `getBoundingClientRect()`, closed on outside click (`onClickOutside`) or scroll (`useEventListener`), both from `@vueuse/core`.
 - **Export** (`features/screener/utils/exportResults.ts:70`): `downloadResults(sortedResults, format)` — exports exactly what's currently sorted/filtered on screen, as CSV (hand-rolled, RFC-4180-ish escaping) or XLSX (via the `xlsx` package). Triggers a browser download via an in-memory `<a download>` anchor + `URL.createObjectURL`.
@@ -112,12 +112,12 @@ Response (`ScreenerResponse`, `features/screener/types/index.ts:28`):
       "lastClose": 4120,
       "matches": [
         {
-          "criterion": "ma_melilit",
+          "criteria": "ma_melilit",
           "confidence": "high",
           "detail": "MA3/5/10/20/50 spread 1.42% (threshold 2%), 3 crossover(s) in the last 10 bars"
         },
         {
-          "criterion": "bullish_divergence",
+          "criteria": "bullish_divergence",
           "confidence": "medium",
           "detail": "Price lower low (4050 -> 3980), RSI higher low (28.4 -> 33.1)"
         }

@@ -19,7 +19,7 @@ A single-feature Nuxt 4 app that screens Indonesia Stock Exchange (IDX) tickers 
 Before opening a PR, scan the `code:` frontmatter of every spoke under `docs/architecture/flows/`. If you touched a listed file, ask three questions in order:
 
 1. **Did the flow change?** (sequence, contract, detector logic, new query param, new config key) → **update the spoke** and re-set `status: ready` after self-review.
-2. **Did you add or rename something documented?** (new detector/criterion, new feature folder, new external service, new config key) → **extend an existing spoke or create a new one**. Add the term to `GLOSSARY.md` before using it.
+2. **Did you add or rename something documented?** (new detector/criteria, new feature folder, new external service, new config key) → **extend an existing spoke or create a new one**. Add the term to `GLOSSARY.md` before using it.
 3. **Was it cosmetic only?** (rename of an internal var, refactor with identical behavior, comment fix) → **no update needed**, leave `status` alone.
 
 If you can't tell, flip the spoke's `status` to `stale` and call it out in the PR — let the reviewer decide.

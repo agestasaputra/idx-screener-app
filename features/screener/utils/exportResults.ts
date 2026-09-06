@@ -1,6 +1,6 @@
 import * as XLSX from "xlsx";
 import type { ScreenerResult } from "../types";
-import { CRITERION_LABELS } from "../constants";
+import { CRITERIA_LABELS } from "../constants";
 
 export type ExportFormat = "csv" | "xlsx";
 
@@ -10,9 +10,7 @@ type ExportRow = Record<(typeof HEADERS)[number], string | number>;
 
 function formatMatches(result: ScreenerResult): string {
   return result.matches
-    .map(
-      (m) => `${CRITERION_LABELS[m.criterion]} (${m.confidence}): ${m.detail}`,
-    )
+    .map((m) => `${CRITERIA_LABELS[m.criteria]} (${m.confidence}): ${m.detail}`)
     .join(" | ");
 }
 

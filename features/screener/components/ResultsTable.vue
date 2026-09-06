@@ -1,14 +1,11 @@
 <script setup lang="ts">
-import { CRITERION_LABELS } from "../constants";
-import type {
-  CriterionMatch,
-  ScreenerCriterion,
-  ScreenerResult,
-} from "../types";
+import { CRITERIA_LABELS } from "../constants";
+import { matchFor } from "../utils/matchFor";
+import type { ScreenerCriteria, ScreenerResult } from "../types";
 
 defineProps<{
   results: ScreenerResult[];
-  criteriaOptions: ScreenerCriterion[];
+  criteriaOptions: ScreenerCriteria[];
   sortColumn: string | null;
   sortDirection: "asc" | "desc";
 }>();
@@ -17,13 +14,6 @@ const emit = defineEmits<{
   sort: [column: string];
   "clear-filters": [];
 }>();
-
-function matchFor(
-  result: ScreenerResult,
-  criterion: ScreenerCriterion,
-): CriterionMatch | undefined {
-  return result.matches.find((m) => m.criterion === criterion);
-}
 </script>
 
 <template>
@@ -68,16 +58,16 @@ function matchFor(
             </ScreenerSortableHeader>
           </th>
           <th
-            v-for="criterion in criteriaOptions"
-            :key="criterion"
-            class="col-criterion"
+            v-for="criteria in criteriaOptions"
+            :key="criteria"
+            class="col-criteria"
           >
             <ScreenerSortableHeader
-              :active="sortColumn === criterion"
+              :active="sortColumn === criteria"
               :direction="sortDirection"
-              @sort="emit('sort', criterion)"
+              @sort="emit('sort', criteria)"
             >
-              {{ CRITERION_LABELS[criterion] }}
+              {{ CRITERIA_LABELS[criteria] }}
             </ScreenerSortableHeader>
           </th>
         </tr>
@@ -106,19 +96,19 @@ function matchFor(
             {{ result.matches.length }}/{{ criteriaOptions.length }}
           </td>
           <td
-            v-for="criterion in criteriaOptions"
-            :key="criterion"
-            class="col-criterion"
+            v-for="criteria in criteriaOptions"
+            :key="criteria"
+            class="col-criteria"
           >
-            <div v-if="matchFor(result, criterion)" class="match">
+            <div v-if="matchFor(result, criteria)" class="match">
               <span
                 class="badge"
-                :class="`badge--${matchFor(result, criterion)!.confidence}`"
+                :class="`badge--${matchFor(result, criteria)!.confidence}`"
               >
-                {{ matchFor(result, criterion)!.confidence }}
+                {{ matchFor(result, criteria)!.confidence }}
               </span>
               <span class="match__detail">{{
-                matchFor(result, criterion)!.detail
+                matchFor(result, criteria)!.detail
               }}</span>
             </div>
             <span v-else class="match__empty">–</span>

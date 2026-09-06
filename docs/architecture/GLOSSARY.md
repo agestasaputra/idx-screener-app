@@ -9,12 +9,12 @@ Single source of truth for terminology used across `docs/architecture/`. Use the
 | Term | Definition |
 |---|---|
 | **IHSG** | Indeks Harga Saham Gabungan — the Indonesian composite stock index. "Whole IHSG" mode in the UI means screening every ticker in `common/constants/idxTickers.json`, not a literal index-membership fetch. |
-| **MA Melilit** | "Weaving MAs" — a screener criterion: the 5 dynamic simple moving averages (periods 3/5/10/20/50) sit within a tight percentage band and cross order at least once recently. Detected in `detectMaMelilit` (see [Screener](flows/screener/README.md#the-three-detectors)). |
-| **Adam & Eve** | A screener criterion: a rough double-bottom heuristic — two swing lows close in price, separated by a swing high, with the first low sharper than the second. Detected in `detectAdamEve`. |
-| **Bullish Divergence** | A screener criterion: price makes a lower low while RSI(14) makes a higher low over the same two swing lows. Detected in `detectBullishDivergence`. |
+| **MA Melilit** | "Weaving MAs" — a screener criteria: the 5 dynamic simple moving averages (periods 3/5/10/20/50) sit within a tight percentage band and cross order at least once recently. Detected in `detectMaMelilit` (see [Screener](flows/screener/README.md#the-three-detectors)). |
+| **Adam & Eve** | A screener criteria: a rough double-bottom heuristic — two swing lows close in price, separated by a swing high, with the first low sharper than the second. Detected in `detectAdamEve`. |
+| **Bullish Divergence** | A screener criteria: price makes a lower low while RSI(14) makes a higher low over the same two swing lows. Detected in `detectBullishDivergence`. |
 | **Swing low / swing high** | A local minimum/maximum in the closing-price series over a `±lookback` window (default 3 bars). Computed by `findSwingLowIndices` / `findSwingHighIndices` (`features/screener/utils/swings.ts`). |
-| **Confidence** | Per-criterion strength: `low`, `medium`, or `high`. Set independently by each detector based on its own thresholds. |
-| **Conviction** | An aggregate score across all of a symbol's matched criteria, computed client/export-side by `computeConviction` (`features/screener/utils/conviction.ts`) — weighted sum of each match's confidence, bucketed into `low`/`medium`/`high`. Distinct from **confidence**, which is per-criterion. |
+| **Confidence** | Per-criteria strength: `low`, `medium`, or `high`. Set independently by each detector based on its own thresholds. |
+| **Conviction** | An aggregate score across all of a symbol's matched criteria, computed client/export-side by `computeConviction` (`features/screener/utils/conviction.ts`) — weighted sum of each match's confidence, bucketed into `low`/`medium`/`high`. Distinct from **confidence**, which is per-criteria. |
 | **Bandarmology** | Broker-flow / accumulation-distribution analysis. Explicitly **not** implemented in this app (see repo [README.md](../../README.md)) — it requires proprietary Stockbit data. |
 
 ## 2. Data Model (cross-cutting)
@@ -24,16 +24,16 @@ There is no database. The two shapes that matter are the API contract types in `
 | Type | Notes |
 |---|---|
 | `OhlcBar` | One daily bar: `date`, `open`, `high`, `low`, `close`, `volume`. Fetched from Yahoo Finance, never persisted. |
-| `CriterionMatch` | `{ criterion, confidence, detail }` — one detector's output for one symbol. |
-| `ScreenerResult` | `{ symbol, name, lastClose, matches: CriterionMatch[] }` — one symbol's full screener outcome. |
+| `CriteriaMatch` | `{ criteria, confidence, detail }` — one detector's output for one symbol. |
+| `ScreenerResult` | `{ symbol, name, lastClose, matches: CriteriaMatch[] }` — one symbol's full screener outcome. |
 | `ScreenerResponse` | `{ results: ScreenerResult[], errors: {symbol, message}[] }` — the full `/api/screener` response shape. |
 
 ## 3. Status Values
 
 | Field | Possible values | Where seen |
 |---|---|---|
-| `CriterionMatch.criterion` | `ma_melilit`, `adam_eve`, `bullish_divergence` | [Screener](flows/screener/README.md) |
-| `CriterionMatch.confidence` / conviction | `low`, `medium`, `high` | [Screener](flows/screener/README.md) |
+| `CriteriaMatch.criteria` | `ma_melilit`, `adam_eve`, `bullish_divergence` | [Screener](flows/screener/README.md) |
+| `CriteriaMatch.confidence` / conviction | `low`, `medium`, `high` | [Screener](flows/screener/README.md) |
 | `ColorScheme` | `light`, `dark` | [Shared & Theming](flows/cross-cutting/shared-and-theming/README.md) |
 
 ## 4. Architecture Patterns

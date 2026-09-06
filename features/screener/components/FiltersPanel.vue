@@ -1,19 +1,19 @@
 <script setup lang="ts">
-import { CRITERION_LABELS } from "../constants";
-import type { ConfidenceLevel, ScreenerCriterion } from "../types";
+import { CRITERIA_LABELS } from "../constants";
+import type { ConfidenceLevel, ScreenerCriteria } from "../types";
 
 defineProps<{
-  activeCriteria: ScreenerCriterion[];
+  activeCriteria: ScreenerCriteria[];
   activeConfidence: ConfidenceLevel[];
   activeSectors: string[];
-  criteriaOptions: ScreenerCriterion[];
+  criteriaOptions: ScreenerCriteria[];
   confidenceOptions: ConfidenceLevel[];
   sectorOptions: string[];
   filterCount: number;
 }>();
 
 const emit = defineEmits<{
-  "toggle-criterion": [criterion: ScreenerCriterion];
+  "toggle-criteria": [criteria: ScreenerCriteria];
   "toggle-confidence": [level: ConfidenceLevel];
   "toggle-sector": [sector: string];
   clear: [];
@@ -76,14 +76,14 @@ const maxClose = defineModel<number | null>("maxClose", { default: null });
       <p class="popover-panel__label">Criteria</p>
       <div class="filter-chips">
         <button
-          v-for="criterion in criteriaOptions"
-          :key="criterion"
+          v-for="criteria in criteriaOptions"
+          :key="criteria"
           type="button"
           class="chip"
-          :class="{ 'chip--active': activeCriteria.includes(criterion) }"
-          @click="emit('toggle-criterion', criterion)"
+          :class="{ 'chip--active': activeCriteria.includes(criteria) }"
+          @click="emit('toggle-criteria', criteria)"
         >
-          {{ CRITERION_LABELS[criterion] }}
+          {{ CRITERIA_LABELS[criteria] }}
         </button>
       </div>
     </div>

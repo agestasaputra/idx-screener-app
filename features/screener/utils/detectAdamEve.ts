@@ -1,4 +1,4 @@
-import type { CriterionMatch } from "../types";
+import type { CriteriaMatch } from "../types";
 import { SWING_LOOKBACK } from "../constants";
 import { findSwingLowIndices, findSwingHighIndices } from "./swings";
 import { at } from "./arrayAt";
@@ -16,7 +16,7 @@ function sharpness(closes: number[], index: number): number {
   return Math.abs(at(closes, end) - at(closes, start)) / bars;
 }
 
-export function detectAdamEve(closes: number[]): CriterionMatch | null {
+export function detectAdamEve(closes: number[]): CriteriaMatch | null {
   const recentLows = findSwingLowIndices(closes, SWING_LOOKBACK).slice(-2);
   const [firstLowIdx, secondLowIdx] = recentLows;
   if (firstLowIdx === undefined || secondLowIdx === undefined) {
@@ -46,7 +46,7 @@ export function detectAdamEve(closes: number[]): CriterionMatch | null {
     isAdamThenEve && diffPct < 2 ? "high" : diffPct < 3 ? "medium" : "low";
 
   return {
-    criterion: "adam_eve",
+    criteria: "adam_eve",
     confidence,
     detail: `Two swing lows ${diffPct.toFixed(2)}% apart with a peak between them${isAdamThenEve ? " (sharp-then-round shape)" : ""}`,
   };
