@@ -38,6 +38,25 @@ function toJakartaTicker(symbol: string): string {
   return symbol.endsWith(".JK") ? symbol : `${symbol}.JK`;
 }
 
+// Sector rarely changes; cache successful lookups across requests to avoid
+// re-fetching it for the same symbol on every screen run.
+const sectorCache = new Map<string, string | null>();
+
+async function fetchSector(symbol: string): Promise<string | null> {
+  const cached = sectorCache.get(symbol);
+  if (cached !== undefined) return cached;
+  try {
+    const summary = await yahooFinance.quoteSummary(toJakartaTicker(symbol), {
+      modules: ["assetProfile"],
+    });
+    const sector = summary.assetProfile?.sector ?? null;
+    sectorCache.set(symbol, sector);
+    return sector;
+  } catch {
+    return null;
+  }
+}
+
 async function fetchBars(symbol: string, bars: number): Promise<OhlcBar[]> {
   const period2 = new Date();
   const period1 = new Date(
@@ -63,9 +82,10 @@ async function fetchBars(symbol: string, bars: number): Promise<OhlcBar[]> {
 
 function evaluateSymbol(
   symbol: string,
-  bars: OhlcBar[],
+  data: { bars: OhlcBar[]; sector: string | null },
   thresholdPct: number,
 ): ScreenerResult {
+  const { bars, sector } = data;
   const closes = bars.map((bar) => bar.close);
   const matches = [
     detectMaMelilit(closes, thresholdPct),
@@ -76,6 +96,7 @@ function evaluateSymbol(
   return {
     symbol,
     name: NAME_BY_SYMBOL.get(symbol) ?? symbol,
+    sector,
     lastClose: at(closes, closes.length - 1),
     matches,
   };
@@ -90,8 +111,13 @@ async function screenOne(
   error?: { symbol: string; message: string };
 }> {
   try {
-    const ohlc = await fetchBars(symbol, bars);
-    return { result: evaluateSymbol(symbol, ohlc, thresholdPct) };
+    const [ohlc, sector] = await Promise.all([
+      fetchBars(symbol, bars),
+      fetchSector(symbol),
+    ]);
+    return {
+      result: evaluateSymbol(symbol, { bars: ohlc, sector }, thresholdPct),
+    };
   } catch (err) {
     return {
       error: {

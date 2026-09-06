@@ -1,17 +1,10 @@
 import * as XLSX from "xlsx";
 import type { ScreenerResult } from "../types";
 import { CRITERION_LABELS } from "../constants";
-import { computeConviction } from "./conviction";
 
 export type ExportFormat = "csv" | "xlsx";
 
-const HEADERS = [
-  "Symbol",
-  "Name",
-  "Last Close",
-  "Conviction",
-  "Matches",
-] as const;
+const HEADERS = ["Symbol", "Name", "Sector", "Last Close", "Matches"] as const;
 
 type ExportRow = Record<(typeof HEADERS)[number], string | number>;
 
@@ -27,8 +20,8 @@ function toExportRows(results: ScreenerResult[]): ExportRow[] {
   return results.map((result) => ({
     Symbol: result.symbol,
     Name: result.name,
+    Sector: result.sector ?? "",
     "Last Close": result.lastClose,
-    Conviction: computeConviction(result.matches),
     Matches: formatMatches(result),
   }));
 }

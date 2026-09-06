@@ -27,10 +27,25 @@
   color: var(--color-accent-strong);
 }
 
+.filter-icon-btn--labeled {
+  width: auto;
+  height: auto;
+  gap: 0.4rem;
+  padding: 0.45rem 0.8rem;
+  border-radius: 8px;
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+
 .filter-icon {
   width: 0.9rem;
   height: 0.9rem;
   fill: currentColor;
+  flex-shrink: 0;
+}
+
+.filter-trigger__text {
+  white-space: nowrap;
 }
 
 .filter-trigger__count {
@@ -59,7 +74,7 @@
   border: 1px solid var(--color-border);
   border-radius: 10px;
   box-shadow: 0 12px 28px var(--shadow-color);
-  padding: 0.85rem;
+  padding: 1rem;
   font-family:
     system-ui,
     -apple-system,

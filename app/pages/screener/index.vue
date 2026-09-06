@@ -4,13 +4,10 @@ import { useScreener } from "~~/features/screener/composables/useScreener";
 import { CRITERION_LABELS } from "~~/features/screener/constants";
 import type {
   ConfidenceLevel,
+  CriterionMatch,
   ScreenerCriterion,
   ScreenerResult,
 } from "~~/features/screener/types";
-import {
-  computeConviction,
-  type ConvictionLevel,
-} from "~~/features/screener/utils/conviction";
 import { downloadResults } from "~~/features/screener/utils/exportResults";
 import idxTickers from "~~/common/constants/idxTickers.json";
 
@@ -18,17 +15,24 @@ type Mode = "manual" | "full";
 
 const mode = ref<Mode>("manual");
 const symbolsInput = ref("BBRI,BBCA,TLKM,ASII,BMRI");
-const { isLoading, response, error, run } = useScreener();
+const { isLoading, progress, response, error, run } = useScreener();
 
 const universeSize = idxTickers.length;
 
 const CRITERIA_OPTIONS = Object.keys(CRITERION_LABELS) as ScreenerCriterion[];
 const CONFIDENCE_OPTIONS: ConfidenceLevel[] = ["high", "medium", "low"];
-const CONVICTION_OPTIONS: ConvictionLevel[] = ["high", "medium", "low"];
 
 const matchedResults = computed(
   () => response.value?.results.filter((r) => r.matches.length > 0) ?? [],
 );
+
+const sectorOptions = computed(() => {
+  const sectors = new Set<string>();
+  for (const result of matchedResults.value) {
+    if (result.sector) sectors.add(result.sector);
+  }
+  return [...sectors].sort();
+});
 
 // Column filters
 const symbolQuery = ref("");
@@ -36,7 +40,7 @@ const minClose = ref<number | null>(null);
 const maxClose = ref<number | null>(null);
 const activeCriteria = ref<ScreenerCriterion[]>([]);
 const activeConfidence = ref<ConfidenceLevel[]>([]);
-const activeConviction = ref<ConvictionLevel[]>([]);
+const activeSectors = ref<string[]>([]);
 
 function toggle<T>(list: T[], value: T): void {
   const idx = list.indexOf(value);
@@ -51,33 +55,36 @@ const toggleCriterion = (criterion: ScreenerCriterion): void =>
   toggle(activeCriteria.value, criterion);
 const toggleConfidence = (level: ConfidenceLevel): void =>
   toggle(activeConfidence.value, level);
-const toggleConviction = (level: ConvictionLevel): void =>
-  toggle(activeConviction.value, level);
+const toggleSector = (sector: string): void =>
+  toggle(activeSectors.value, sector);
 
 const isCloseFilterActive = computed(
   () => minClose.value !== null || maxClose.value !== null,
 );
-const criteriaFilterCount = computed(
-  () => activeCriteria.value.length + activeConfidence.value.length,
+
+const columnFilterCount = computed(
+  () =>
+    (isCloseFilterActive.value ? 1 : 0) +
+    activeCriteria.value.length +
+    activeConfidence.value.length +
+    activeSectors.value.length,
 );
 
 const hasActiveFilters = computed(
-  () =>
-    symbolQuery.value.trim().length > 0 ||
-    minClose.value !== null ||
-    maxClose.value !== null ||
-    activeCriteria.value.length > 0 ||
-    activeConfidence.value.length > 0 ||
-    activeConviction.value.length > 0,
+  () => symbolQuery.value.trim().length > 0 || columnFilterCount.value > 0,
 );
 
-function clearFilters(): void {
-  symbolQuery.value = "";
+function clearColumnFilters(): void {
   minClose.value = null;
   maxClose.value = null;
   activeCriteria.value = [];
   activeConfidence.value = [];
-  activeConviction.value = [];
+  activeSectors.value = [];
+}
+
+function clearFilters(): void {
+  symbolQuery.value = "";
+  clearColumnFilters();
 }
 
 function matchesSearch(result: ScreenerResult, query: string): boolean {
@@ -108,9 +115,16 @@ function matchesConfidence(result: ScreenerResult): boolean {
   );
 }
 
-function matchesConviction(result: ScreenerResult): boolean {
-  if (activeConviction.value.length === 0) return true;
-  return activeConviction.value.includes(computeConviction(result.matches));
+function matchesSector(result: ScreenerResult): boolean {
+  if (activeSectors.value.length === 0) return true;
+  return result.sector !== null && activeSectors.value.includes(result.sector);
+}
+
+function matchFor(
+  result: ScreenerResult,
+  criterion: ScreenerCriterion,
+): CriterionMatch | undefined {
+  return result.matches.find((m) => m.criterion === criterion);
 }
 
 const filteredResults = computed(() => {
@@ -121,21 +135,22 @@ const filteredResults = computed(() => {
       matchesCloseRange(result) &&
       matchesCriteria(result) &&
       matchesConfidence(result) &&
-      matchesConviction(result),
+      matchesSector(result),
   );
 });
 
-type SortColumn = "symbol" | "lastClose" | "conviction" | "matches";
+type SortColumn =
+  "symbol" | "lastClose" | "sector" | "matches" | ScreenerCriterion;
 type SortDirection = "asc" | "desc";
 
-const CONVICTION_RANK: Record<ConvictionLevel, number> = {
+const CONFIDENCE_RANK: Record<ConfidenceLevel, number> = {
   low: 0,
   medium: 1,
   high: 2,
 };
 
-const sortColumn = ref<SortColumn | null>(null);
-const sortDirection = ref<SortDirection>("asc");
+const sortColumn = ref<SortColumn | null>("ma_melilit");
+const sortDirection = ref<SortDirection>("desc");
 
 function toggleSort(column: SortColumn): void {
   if (sortColumn.value === column) {
@@ -144,6 +159,14 @@ function toggleSort(column: SortColumn): void {
     sortColumn.value = column;
     sortDirection.value = "asc";
   }
+}
+
+function confidenceRank(
+  result: ScreenerResult,
+  criterion: ScreenerCriterion,
+): number {
+  const match = matchFor(result, criterion);
+  return match ? CONFIDENCE_RANK[match.confidence] : -1;
 }
 
 function compareResults(
@@ -156,13 +179,12 @@ function compareResults(
       return a.symbol.localeCompare(b.symbol);
     case "lastClose":
       return a.lastClose - b.lastClose;
-    case "conviction":
-      return (
-        CONVICTION_RANK[computeConviction(a.matches)] -
-        CONVICTION_RANK[computeConviction(b.matches)]
-      );
+    case "sector":
+      return (a.sector ?? "").localeCompare(b.sector ?? "");
     case "matches":
       return a.matches.length - b.matches.length;
+    default:
+      return confidenceRank(a, column) - confidenceRank(b, column);
   }
 }
 
@@ -185,7 +207,7 @@ function parseSymbols(raw: string): string[] {
 async function onRun(): Promise<void> {
   clearFilters();
   if (mode.value === "full") {
-    await run({});
+    await run({ symbols: idxTickers.map((ticker) => ticker.symbol) });
     return;
   }
   const symbols = parseSymbols(symbolsInput.value);
@@ -193,6 +215,11 @@ async function onRun(): Promise<void> {
     await run({ symbols });
   }
 }
+
+const progressPercent = computed(() => {
+  if (!progress.value || progress.value.total === 0) return 0;
+  return Math.round((progress.value.done / progress.value.total) * 100);
+});
 </script>
 
 <template>
@@ -238,6 +265,21 @@ async function onRun(): Promise<void> {
         <span v-if="isLoading" class="spinner" aria-hidden="true" />
         {{ isLoading ? "Running..." : "Run screener" }}
       </button>
+
+      <div v-if="isLoading && progress" class="progress">
+        <div class="progress__header">
+          <span class="progress__info">
+            Screening {{ progress.done }} / {{ progress.total }} tickers…
+          </span>
+          <span class="progress__percent">{{ progressPercent }}%</span>
+        </div>
+        <div class="progress-bar">
+          <div
+            class="progress-bar__fill"
+            :style="{ width: `${progressPercent}%` }"
+          />
+        </div>
+      </div>
     </div>
 
     <p v-if="error" class="error">{{ error }}</p>
@@ -263,28 +305,76 @@ async function onRun(): Promise<void> {
     </p>
 
     <div v-if="response && matchedResults.length > 0" class="table-toolbar">
-      <div class="export-buttons">
+      <ScreenerDropdownMenu label="Download results">
+        <template #trigger>
+          <svg viewBox="0 0 24 24" class="dropdown-icon" aria-hidden="true">
+            <path
+              d="M12 3.75a.75.75 0 0 1 .75.75v9.19l2.72-2.72a.75.75 0 1 1 1.06 1.06l-4 4a.75.75 0 0 1-1.06 0l-4-4a.75.75 0 1 1 1.06-1.06l2.72 2.72V4.5a.75.75 0 0 1 .75-.75Z"
+            />
+            <path
+              d="M4.5 15a.75.75 0 0 1 .75.75v2.25a1.5 1.5 0 0 0 1.5 1.5h10.5a1.5 1.5 0 0 0 1.5-1.5v-2.25a.75.75 0 0 1 1.5 0v2.25a3 3 0 0 1-3 3H6.75a3 3 0 0 1-3-3v-2.25A.75.75 0 0 1 4.5 15Z"
+            />
+          </svg>
+          Download
+          <svg
+            viewBox="0 0 24 24"
+            class="dropdown-icon dropdown-icon--sm"
+            aria-hidden="true"
+          >
+            <path
+              fill-rule="evenodd"
+              d="M12.53 16.28a.75.75 0 0 1-1.06 0l-7.5-7.5a.75.75 0 0 1 1.06-1.06L12 14.69l6.97-6.97a.75.75 0 1 1 1.06 1.06l-7.5 7.5Z"
+              clip-rule="evenodd"
+            />
+          </svg>
+        </template>
         <button
           type="button"
-          class="export-btn export-btn--primary"
+          class="dropdown-item"
           @click="downloadResults(sortedResults, 'csv')"
         >
-          Download CSV
+          <span>CSV</span>
+          <span class="dropdown-item__hint">.csv</span>
         </button>
         <button
           type="button"
-          class="export-btn"
+          class="dropdown-item"
           @click="downloadResults(sortedResults, 'xlsx')"
         >
-          Download XLSX
+          <span>Excel</span>
+          <span class="dropdown-item__hint">.xlsx</span>
         </button>
+      </ScreenerDropdownMenu>
+      <div class="toolbar-right">
+        <input
+          v-model="symbolQuery"
+          type="search"
+          class="table-search"
+          placeholder="Search symbol or name…"
+        />
+        <ScreenerColumnFilterPopover
+          label="Filter results"
+          text="Filters"
+          :count="columnFilterCount"
+          :active="columnFilterCount > 0"
+        >
+          <ScreenerFiltersPanel
+            v-model:min-close="minClose"
+            v-model:max-close="maxClose"
+            :active-criteria="activeCriteria"
+            :active-confidence="activeConfidence"
+            :active-sectors="activeSectors"
+            :criteria-options="CRITERIA_OPTIONS"
+            :confidence-options="CONFIDENCE_OPTIONS"
+            :sector-options="sectorOptions"
+            :filter-count="columnFilterCount"
+            @toggle-criterion="toggleCriterion"
+            @toggle-confidence="toggleConfidence"
+            @toggle-sector="toggleSector"
+            @clear="clearColumnFilters"
+          />
+        </ScreenerColumnFilterPopover>
       </div>
-      <input
-        v-model="symbolQuery"
-        type="search"
-        class="table-search"
-        placeholder="Search symbol or name…"
-      />
     </div>
 
     <div v-if="response && matchedResults.length > 0" class="table-wrap card">
@@ -297,121 +387,48 @@ async function onRun(): Promise<void> {
                 :direction="sortDirection"
                 @sort="toggleSort('symbol')"
               >
-                Emiten
+                Ticker
               </ScreenerSortableHeader>
             </th>
             <th class="col-close">
-              <div class="col-title">
-                <ScreenerSortableHeader
-                  :active="sortColumn === 'lastClose'"
-                  :direction="sortDirection"
-                  @sort="toggleSort('lastClose')"
-                >
-                  Last close
-                </ScreenerSortableHeader>
-                <ScreenerColumnFilterPopover
-                  label="Filter by last close range"
-                  :active="isCloseFilterActive"
-                >
-                  <p class="popover-panel__label">Range</p>
-                  <div class="filter-range">
-                    <input
-                      v-model.number="minClose"
-                      type="number"
-                      class="filter-input filter-input--num"
-                      placeholder="Min"
-                    />
-                    <span class="filter-range__sep">–</span>
-                    <input
-                      v-model.number="maxClose"
-                      type="number"
-                      class="filter-input filter-input--num"
-                      placeholder="Max"
-                    />
-                  </div>
-                </ScreenerColumnFilterPopover>
-              </div>
+              <ScreenerSortableHeader
+                :active="sortColumn === 'lastClose'"
+                :direction="sortDirection"
+                @sort="toggleSort('lastClose')"
+              >
+                Last close
+              </ScreenerSortableHeader>
             </th>
-            <th class="col-conviction">
-              <div class="col-title">
-                <ScreenerSortableHeader
-                  :active="sortColumn === 'conviction'"
-                  :direction="sortDirection"
-                  @sort="toggleSort('conviction')"
-                >
-                  Conviction
-                </ScreenerSortableHeader>
-                <ScreenerColumnFilterPopover
-                  label="Filter by conviction"
-                  :count="activeConviction.length"
-                  :active="activeConviction.length > 0"
-                >
-                  <p class="popover-panel__label">Conviction</p>
-                  <div class="filter-chips">
-                    <button
-                      v-for="level in CONVICTION_OPTIONS"
-                      :key="level"
-                      type="button"
-                      class="chip chip--confidence"
-                      :class="[
-                        `chip--${level}`,
-                        { 'chip--active': activeConviction.includes(level) },
-                      ]"
-                      @click="toggleConviction(level)"
-                    >
-                      {{ level }}
-                    </button>
-                  </div>
-                </ScreenerColumnFilterPopover>
-              </div>
+            <th class="col-sector">
+              <ScreenerSortableHeader
+                :active="sortColumn === 'sector'"
+                :direction="sortDirection"
+                @sort="toggleSort('sector')"
+              >
+                Sector
+              </ScreenerSortableHeader>
             </th>
-            <th>
-              <div class="col-title">
-                <ScreenerSortableHeader
-                  :active="sortColumn === 'matches'"
-                  :direction="sortDirection"
-                  @sort="toggleSort('matches')"
-                >
-                  Criteria matched
-                </ScreenerSortableHeader>
-                <ScreenerColumnFilterPopover
-                  label="Filter by criterion or confidence"
-                  :count="criteriaFilterCount"
-                  :active="criteriaFilterCount > 0"
-                >
-                  <p class="popover-panel__label">Criterion</p>
-                  <div class="filter-chips">
-                    <button
-                      v-for="criterion in CRITERIA_OPTIONS"
-                      :key="criterion"
-                      type="button"
-                      class="chip"
-                      :class="{
-                        'chip--active': activeCriteria.includes(criterion),
-                      }"
-                      @click="toggleCriterion(criterion)"
-                    >
-                      {{ CRITERION_LABELS[criterion] }}
-                    </button>
-                  </div>
-                  <p class="popover-panel__label">Confidence</p>
-                  <div class="filter-chips">
-                    <button
-                      v-for="level in CONFIDENCE_OPTIONS"
-                      :key="level"
-                      type="button"
-                      class="chip chip--confidence"
-                      :class="[
-                        `chip--${level}`,
-                        { 'chip--active': activeConfidence.includes(level) },
-                      ]"
-                      @click="toggleConfidence(level)"
-                    >
-                      {{ level }}
-                    </button>
-                  </div>
-                </ScreenerColumnFilterPopover>
-              </div>
+            <th class="col-matched">
+              <ScreenerSortableHeader
+                :active="sortColumn === 'matches'"
+                :direction="sortDirection"
+                @sort="toggleSort('matches')"
+              >
+                Matched
+              </ScreenerSortableHeader>
+            </th>
+            <th
+              v-for="criterion in CRITERIA_OPTIONS"
+              :key="criterion"
+              class="col-criterion"
+            >
+              <ScreenerSortableHeader
+                :active="sortColumn === criterion"
+                :direction="sortDirection"
+                @sort="toggleSort(criterion)"
+              >
+                {{ CRITERION_LABELS[criterion] }}
+              </ScreenerSortableHeader>
             </th>
           </tr>
         </thead>
@@ -422,40 +439,44 @@ async function onRun(): Promise<void> {
             class="data-row"
           >
             <td>
-              <div class="emiten">
-                <span class="emiten__symbol">{{ result.symbol }}</span>
-                <span class="emiten__name">{{ result.name }}</span>
+              <div class="ticker">
+                <a
+                  :href="`https://id.tradingview.com/chart/?symbol=${result.symbol}`"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="ticker__symbol"
+                >
+                  {{ result.symbol }}
+                </a>
+                <span class="ticker__name">{{ result.name }}</span>
               </div>
             </td>
             <td class="col-close">{{ result.lastClose.toFixed(0) }}</td>
-            <td class="col-conviction">
-              <span
-                class="badge badge--conviction"
-                :class="`badge--${computeConviction(result.matches)}`"
-              >
-                {{ computeConviction(result.matches) }}
-              </span>
+            <td class="col-sector">{{ result.sector ?? "—" }}</td>
+            <td class="col-matched">
+              {{ result.matches.length }}/{{ CRITERIA_OPTIONS.length }}
             </td>
-            <td>
-              <ul class="matches">
-                <li
-                  v-for="match in result.matches"
-                  :key="match.criterion"
-                  class="match"
+            <td
+              v-for="criterion in CRITERIA_OPTIONS"
+              :key="criterion"
+              class="col-criterion"
+            >
+              <div v-if="matchFor(result, criterion)" class="match">
+                <span
+                  class="badge"
+                  :class="`badge--${matchFor(result, criterion)!.confidence}`"
                 >
-                  <span class="match__label">{{
-                    CRITERION_LABELS[match.criterion]
-                  }}</span>
-                  <span class="badge" :class="`badge--${match.confidence}`">
-                    {{ match.confidence }}
-                  </span>
-                  <span class="match__detail">{{ match.detail }}</span>
-                </li>
-              </ul>
+                  {{ matchFor(result, criterion)!.confidence }}
+                </span>
+                <span class="match__detail">{{
+                  matchFor(result, criterion)!.detail
+                }}</span>
+              </div>
+              <span v-else class="match__empty">–</span>
             </td>
           </tr>
           <tr v-if="filteredResults.length === 0">
-            <td colspan="4" class="empty-state">
+            <td colspan="7" class="empty-state">
               No matches with the current filters.
               <button type="button" class="link-button" @click="clearFilters">
                 Clear filters

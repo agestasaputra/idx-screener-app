@@ -21,6 +21,7 @@ export interface CriterionMatch {
 export interface ScreenerResult {
   symbol: string;
   name: string;
+  sector: string | null;
   lastClose: number;
   matches: CriterionMatch[];
 }
