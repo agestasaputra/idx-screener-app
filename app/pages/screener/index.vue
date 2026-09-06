@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed } from "vue";
+import { ref, computed, watch } from "vue";
 import { useScreener } from "~~/features/screener/composables/useScreener";
 import { CRITERION_LABELS } from "~~/features/screener/constants";
 import type {
@@ -197,6 +197,30 @@ const sortedResults = computed(() => {
   );
 });
 
+const PAGE_SIZE_OPTIONS = [25, 50, 100, 200];
+const pageSize = ref(50);
+const currentPage = ref(1);
+
+const totalPages = computed(() =>
+  Math.max(1, Math.ceil(sortedResults.value.length / pageSize.value)),
+);
+
+const pagedResults = computed(() => {
+  const page = Math.min(currentPage.value, totalPages.value);
+  const start = (page - 1) * pageSize.value;
+  return sortedResults.value.slice(start, start + pageSize.value);
+});
+
+// Any filter or a fresh run reshapes the result set, so the current page
+// index may no longer make sense — jump back to page 1 rather than risk
+// landing on an out-of-range or confusingly-offset page.
+watch(filteredResults, () => {
+  currentPage.value = 1;
+});
+watch(pageSize, () => {
+  currentPage.value = 1;
+});
+
 function parseSymbols(raw: string): string[] {
   return raw
     .split(",")
@@ -292,7 +316,7 @@ const progressPercent = computed(() => {
         v-if="filteredResults.length !== matchedResults.length"
         class="summary__filtered"
       >
-        Showing {{ filteredResults.length }} after filters.
+        {{ filteredResults.length }} match(es) after filters.
       </span>
       <button
         v-if="hasActiveFilters"
@@ -434,7 +458,7 @@ const progressPercent = computed(() => {
         </thead>
         <tbody>
           <tr
-            v-for="result in sortedResults"
+            v-for="result in pagedResults"
             :key="result.symbol"
             class="data-row"
           >
@@ -489,6 +513,14 @@ const progressPercent = computed(() => {
         </tbody>
       </table>
     </div>
+
+    <ScreenerTablePagination
+      v-if="filteredResults.length > 0"
+      v-model:current-page="currentPage"
+      v-model:page-size="pageSize"
+      :total-items="filteredResults.length"
+      :page-size-options="PAGE_SIZE_OPTIONS"
+    />
 
     <details v-if="response && response.errors.length > 0" class="errors card">
       <summary>{{ response.errors.length }} symbol(s) failed to fetch</summary>

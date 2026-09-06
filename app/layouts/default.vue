@@ -47,14 +47,20 @@ const { scheme, toggle } = useColorScheme();
 
 <style scoped>
 .shell {
-  min-height: 100vh;
+  height: 100vh;
+  height: 100dvh;
+  overflow: hidden;
   background: var(--color-bg);
 }
 
 .layout {
+  height: 100%;
   max-width: 1080px;
   margin: 0 auto;
   padding: 2rem 1.5rem 3rem;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
   font-family:
     system-ui,
     -apple-system,
@@ -66,6 +72,14 @@ const { scheme, toggle } = useColorScheme();
   align-items: center;
   gap: 0.6rem;
   margin-bottom: 1.5rem;
+  flex-shrink: 0;
+}
+
+.layout__main {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
 }
 
 .layout__badge {
