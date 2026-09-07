@@ -10,7 +10,10 @@ type ExportRow = Record<(typeof HEADERS)[number], string | number>;
 
 function formatMatches(result: ScreenerResult): string {
   return result.matches
-    .map((m) => `${CRITERIA_LABELS[m.criteria]} (${m.confidence}): ${m.detail}`)
+    .map(
+      (m) =>
+        `${CRITERIA_LABELS[m.criteria]} (${m.confidence}): ${m.detail.join("; ")}`,
+    )
     .join(" | ");
 }
 

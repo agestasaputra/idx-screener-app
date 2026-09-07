@@ -20,7 +20,9 @@ function priceChange(result: ScreenerResult): number {
 }
 
 function priceChangePct(result: ScreenerResult): number {
-  return result.prevClose === 0 ? 0 : (priceChange(result) / result.prevClose) * 100;
+  return result.prevClose === 0
+    ? 0
+    : (priceChange(result) / result.prevClose) * 100;
 }
 </script>
 
@@ -111,7 +113,11 @@ function priceChangePct(result: ScreenerResult): number {
               "
             >
               <span class="price-change__arrow">{{
-                priceChange(result) < 0 ? "↘" : priceChange(result) > 0 ? "↗" : ""
+                priceChange(result) < 0
+                  ? "↘"
+                  : priceChange(result) > 0
+                    ? "↗"
+                    : ""
               }}</span>
               {{ Math.abs(priceChange(result)).toFixed(0) }} ({{
                 priceChangePct(result).toFixed(2)
@@ -134,9 +140,14 @@ function priceChangePct(result: ScreenerResult): number {
               >
                 {{ matchFor(result, criteria)!.confidence }}
               </span>
-              <span class="match__detail">{{
-                matchFor(result, criteria)!.detail
-              }}</span>
+              <ul class="match__detail">
+                <li
+                  v-for="line in matchFor(result, criteria)!.detail"
+                  :key="line"
+                >
+                  {{ line }}
+                </li>
+              </ul>
             </div>
             <span v-else class="match__empty">–</span>
           </td>

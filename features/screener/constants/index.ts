@@ -15,3 +15,8 @@ export const RSI_PERIOD = 14;
 
 // Swing points are local extrema over a +/- window of this many bars.
 export const SWING_LOOKBACK = 3;
+
+// Bullish divergence is only an actionable setup while price is still near
+// the divergence low. Past this much rally off that low, the uptrend has
+// already played out and there's no upside left to catch.
+export const BULLISH_DIVERGENCE_MAX_RALLY_PCT = 2;

@@ -48,6 +48,8 @@ export function detectAdamEve(closes: number[]): CriteriaMatch | null {
   return {
     criteria: "adam_eve",
     confidence,
-    detail: `Two swing lows ${diffPct.toFixed(2)}% apart with a peak between them${isAdamThenEve ? " (sharp-then-round shape)" : ""}`,
+    detail: [
+      `Two swing lows ${diffPct.toFixed(2)}% apart with a peak between them${isAdamThenEve ? " (sharp-then-round shape)" : ""}`,
+    ],
   };
 }

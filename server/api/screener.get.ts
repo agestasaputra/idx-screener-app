@@ -7,6 +7,8 @@ import type {
 } from "../../features/screener/types";
 import { detectMaMelilit } from "../../features/screener/utils/detectMaMelilit";
 import { detectBullishDivergence } from "../../features/screener/utils/detectBullishDivergence";
+import { mergeBullishDivergenceMatches } from "../../features/screener/utils/mergeBullishDivergenceMatches";
+import { resampleCloses } from "../../features/screener/utils/resampleCloses";
 import { detectAdamEve } from "../../features/screener/utils/detectAdamEve";
 import { at } from "../../features/screener/utils/arrayAt";
 import { mapWithConcurrency } from "../../features/screener/utils/concurrency";
@@ -25,6 +27,12 @@ const SPARKLINE_LOOKBACK_DAYS = 5;
 // Jakarta (IDX) has no DST, so a fixed UTC+7 offset is enough to bucket
 // intraday quotes by local trading day.
 const JAKARTA_OFFSET_MS = 7 * 60 * 60 * 1000;
+// Calendar days of 1H history to fetch for the multi-timeframe bullish
+// divergence check (also used, resampled, as the 4H series).
+const HOURLY_LOOKBACK_DAYS = 90;
+// No native 4H interval on the data provider — derive it from four
+// consecutive 1H bars.
+const FOUR_HOUR_GROUP_SIZE = 4;
 
 const NAME_BY_SYMBOL = new Map(
   idxTickers.map((ticker) => [ticker.symbol, ticker.name]),
@@ -69,6 +77,13 @@ function jakartaDateKey(date: Date): string {
     .slice(0, 10);
 }
 
+function jakartaTimestamp(date: Date): string {
+  return new Date(date.getTime() + JAKARTA_OFFSET_MS)
+    .toISOString()
+    .slice(0, 16)
+    .replace("T", " ");
+}
+
 // 5-minute closes for the most recent trading day, for the row sparkline.
 async function fetchIntradaySparkline(symbol: string): Promise<number[]> {
   try {
@@ -97,6 +112,30 @@ async function fetchIntradaySparkline(symbol: string): Promise<number[]> {
   }
 }
 
+// 1H closes for the last HOURLY_LOOKBACK_DAYS, for the intraday legs of the
+// multi-timeframe bullish divergence check (1H directly, 4H via resampling).
+async function fetchHourlyCloses(
+  symbol: string,
+): Promise<{ closes: number[]; dates: string[] }> {
+  const period2 = new Date();
+  const period1 = new Date(
+    period2.getTime() - HOURLY_LOOKBACK_DAYS * MS_PER_DAY,
+  );
+  const chart = await yahooFinance.chart(toJakartaTicker(symbol), {
+    period1,
+    period2,
+    interval: "1h",
+  });
+
+  const quotes = chart.quotes.filter(
+    (quote): quote is typeof quote & { close: number } => quote.close !== null,
+  );
+  return {
+    closes: quotes.map((quote) => quote.close),
+    dates: quotes.map((quote) => jakartaTimestamp(quote.date)),
+  };
+}
+
 async function fetchBars(symbol: string, bars: number): Promise<OhlcBar[]> {
   const period2 = new Date();
   const period1 = new Date(
@@ -122,15 +161,32 @@ async function fetchBars(symbol: string, bars: number): Promise<OhlcBar[]> {
 
 function evaluateSymbol(
   symbol: string,
-  data: { bars: OhlcBar[]; sector: string | null; sparkline: number[] },
+  data: {
+    bars: OhlcBar[];
+    sector: string | null;
+    sparkline: number[];
+    hourly: { closes: number[]; dates: string[] };
+  },
   thresholdPct: number,
 ): ScreenerResult {
-  const { bars, sector, sparkline } = data;
+  const { bars, sector, sparkline, hourly } = data;
   const closes = bars.map((bar) => bar.close);
+  const dates = bars.map((bar) => bar.date);
+  const fourHour = resampleCloses(
+    hourly.closes,
+    hourly.dates,
+    FOUR_HOUR_GROUP_SIZE,
+  );
+  const bullishDivergence = mergeBullishDivergenceMatches([
+    detectBullishDivergence(closes, dates, "Daily"),
+    detectBullishDivergence(hourly.closes, hourly.dates, "1H"),
+    detectBullishDivergence(fourHour.closes, fourHour.dates, "4H"),
+  ]);
+
   const matches = [
     detectMaMelilit(closes, thresholdPct),
     detectAdamEve(closes),
-    detectBullishDivergence(closes),
+    bullishDivergence,
   ].filter((match): match is NonNullable<typeof match> => match !== null);
 
   const lastClose = at(closes, closes.length - 1);
@@ -155,15 +211,16 @@ async function screenOne(
   error?: { symbol: string; message: string };
 }> {
   try {
-    const [ohlc, sector, sparkline] = await Promise.all([
+    const [ohlc, sector, sparkline, hourly] = await Promise.all([
       fetchBars(symbol, bars),
       fetchSector(symbol),
       fetchIntradaySparkline(symbol),
+      fetchHourlyCloses(symbol),
     ]);
     return {
       result: evaluateSymbol(
         symbol,
-        { bars: ohlc, sector, sparkline },
+        { bars: ohlc, sector, sparkline, hourly },
         thresholdPct,
       ),
     };

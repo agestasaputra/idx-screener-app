@@ -16,7 +16,7 @@ export interface OhlcBar {
 export interface CriteriaMatch {
   criteria: ScreenerCriteria;
   confidence: ConfidenceLevel;
-  detail: string;
+  detail: string[];
 }
 
 export interface ScreenerResult {

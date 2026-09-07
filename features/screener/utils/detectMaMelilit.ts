@@ -69,6 +69,9 @@ export function detectMaMelilit(
   return {
     criteria: "ma_melilit",
     confidence,
-    detail: `MA3/5/10/20/50 spread ${spreadPct.toFixed(2)}% (threshold ${thresholdPct}%), ${flips} crossover(s) in the last ${WEAVE_WINDOW} bars`,
+    detail: [
+      `MA3/5/10/20/50 spread ${spreadPct.toFixed(2)}% (threshold ${thresholdPct}%)`,
+      `${flips} crossover(s) in the last ${WEAVE_WINDOW} bars`,
+    ],
   };
 }

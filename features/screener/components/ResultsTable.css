@@ -119,6 +119,8 @@ td {
 .match__detail {
   color: var(--color-text-tertiary);
   font-size: 0.85rem;
+  margin: 0;
+  padding-left: 1rem;
 }
 
 .match__empty {
