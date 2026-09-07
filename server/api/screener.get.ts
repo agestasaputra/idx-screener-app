@@ -185,7 +185,7 @@ function evaluateSymbol(
 
   const matches = [
     detectMaMelilit(closes, thresholdPct),
-    detectAdamEve(closes),
+    detectAdamEve(closes, dates),
     bullishDivergence,
   ].filter((match): match is NonNullable<typeof match> => match !== null);
 
