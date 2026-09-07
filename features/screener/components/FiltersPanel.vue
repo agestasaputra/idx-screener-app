@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { CRITERIA_LABELS } from "../constants";
+import { CRITERIA_LABELS, CRITERIA_DESCRIPTIONS } from "../constants";
 import type { ConfidenceLevel, ScreenerCriteria } from "../types";
 
 defineProps<{
@@ -81,6 +81,7 @@ const maxClose = defineModel<number | null>("maxClose", { default: null });
           type="button"
           class="chip"
           :class="{ 'chip--active': activeCriteria.includes(criteria) }"
+          :title="CRITERIA_DESCRIPTIONS[criteria]"
           @click="emit('toggle-criteria', criteria)"
         >
           {{ CRITERIA_LABELS[criteria] }}

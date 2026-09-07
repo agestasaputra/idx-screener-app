@@ -10,6 +10,7 @@ import { detectBullishDivergence } from "../../features/screener/utils/detectBul
 import { mergeBullishDivergenceMatches } from "../../features/screener/utils/mergeBullishDivergenceMatches";
 import { resampleCloses } from "../../features/screener/utils/resampleCloses";
 import { detectAdamEve } from "../../features/screener/utils/detectAdamEve";
+import { detectSpikeFrequencyAnalyzer } from "../../features/screener/utils/detectSpikeFrequencyAnalyzer";
 import { at } from "../../features/screener/utils/arrayAt";
 import { mapWithConcurrency } from "../../features/screener/utils/concurrency";
 import idxTickers from "../../common/constants/idxTickers.json";
@@ -187,6 +188,7 @@ function evaluateSymbol(
     detectMaMelilit(closes, thresholdPct),
     detectAdamEve(closes, dates),
     bullishDivergence,
+    detectSpikeFrequencyAnalyzer(bars),
   ].filter((match): match is NonNullable<typeof match> => match !== null);
 
   const lastClose = at(closes, closes.length - 1);

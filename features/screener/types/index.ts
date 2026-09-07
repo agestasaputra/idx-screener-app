@@ -1,6 +1,7 @@
 export type Mode = "manual" | "full";
 
-export type ScreenerCriteria = "ma_melilit" | "adam_eve" | "bullish_divergence";
+export type ScreenerCriteria =
+  "ma_melilit" | "adam_eve" | "bullish_divergence" | "spike_frequency_analyzer";
 
 export type ConfidenceLevel = "low" | "medium" | "high";
 

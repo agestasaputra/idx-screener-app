@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { CRITERIA_LABELS } from "../constants";
+import { CRITERIA_LABELS, CRITERIA_DESCRIPTIONS } from "../constants";
 import { matchFor } from "../utils/matchFor";
 import type { ScreenerCriteria, ScreenerResult } from "../types";
 
@@ -71,6 +71,7 @@ function priceChangePct(result: ScreenerResult): number {
             v-for="criteria in criteriaOptions"
             :key="criteria"
             class="col-criteria"
+            :title="CRITERIA_DESCRIPTIONS[criteria]"
           >
             <ScreenerSortableHeader
               :active="sortColumn === criteria"
@@ -153,7 +154,7 @@ function priceChangePct(result: ScreenerResult): number {
           </td>
         </tr>
         <tr v-if="results.length === 0">
-          <td colspan="7" class="empty-state">
+          <td :colspan="4 + criteriaOptions.length" class="empty-state">
             No matches with the current filters.
             <button
               type="button"

@@ -166,7 +166,8 @@ const progressPercent = computed(() => {
           title="No matches"
         >
           None of the {{ response.results.length }} ticker(s) screened matched
-          MA Melilit, Adam &amp; Eve, or Bullish Divergence this run.
+          {{ CRITERIA_OPTIONS.map((c) => CRITERIA_LABELS[c]).join(", ") }} this
+          run.
         </ScreenerEmptyState>
 
         <template v-else>
