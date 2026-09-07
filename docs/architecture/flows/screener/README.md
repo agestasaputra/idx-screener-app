@@ -73,13 +73,14 @@ sequenceDiagram
 
 All three take a plain `number[]` of closing prices (and sometimes a threshold) and return `CriteriaMatch | null` — no shared base class, no framework, just pure functions. Each is a heuristic, not a validated trading signal (see repo [README.md](../../../../README.md)).
 
-| Criteria | File | What it checks |
-|---|---|---|
-| **MA Melilit** ("weaving") | `features/screener/utils/detectMaMelilit.ts:38` | The 5 dynamic SMAs (periods 3/5/10/20/50, `DYNAMIC_MA_PERIODS` in `features/screener/constants/index.ts:12`) are within `thresholdPct` of each other (dispersion), and counts how many times any two swap relative order over the last `WEAVE_WINDOW = 10` bars (`detectMaMelilit.ts:6`) — more flips ⇒ higher confidence. |
-| **Adam & Eve** | `features/screener/utils/detectAdamEve.ts:19` | Takes the last two swing lows (`findSwingLowIndices`, lookback ±3 bars); requires a swing high between them and the two lows within `MAX_BOTTOM_DIFF_PCT = 4%` of each other. Confidence rises if the first low is measurably "sharper" than the second (`sharpness()`, a cheap slope proxy — not real curve-fitting). |
-| **Bullish Divergence** | `features/screener/utils/detectBullishDivergence.ts:9` | Computes RSI(14) (`technicalindicators` package) and compares it at the same two swing lows used above: price makes a **lower** low while RSI makes a **higher** low. Confidence rises with a bigger RSI gap and if the second low is within the last 10 bars. |
+| Criteria                   | File                                                   | What it checks                                                                                                                                                                                                                                                                                                             |
+| -------------------------- | ------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **MA Melilit** ("weaving") | `features/screener/utils/detectMaMelilit.ts:38`        | The 5 dynamic SMAs (periods 3/5/10/20/50, `DYNAMIC_MA_PERIODS` in `features/screener/constants/index.ts:12`) are within `thresholdPct` of each other (dispersion), and counts how many times any two swap relative order over the last `WEAVE_WINDOW = 10` bars (`detectMaMelilit.ts:6`) — more flips ⇒ higher confidence. |
+| **Adam & Eve**             | `features/screener/utils/detectAdamEve.ts:19`          | Takes the last two swing lows (`findSwingLowIndices`, lookback ±3 bars); requires a swing high between them and the two lows within `MAX_BOTTOM_DIFF_PCT = 4%` of each other. Confidence rises if the first low is measurably "sharper" than the second (`sharpness()`, a cheap slope proxy — not real curve-fitting).     |
+| **Bullish Divergence**     | `features/screener/utils/detectBullishDivergence.ts:9` | Computes RSI(14) (`technicalindicators` package) and compares it at the same two swing lows used above: price makes a **lower** low while RSI makes a **higher** low. Confidence rises with a bigger RSI gap and if the second low is within the last 10 bars.                                                             |
 
 Shared building blocks:
+
 - `features/screener/utils/swings.ts:1` — `findSwingLowIndices` / `findSwingHighIndices`: a value at index `i` is a swing point if it's the min/max within a `±lookback` window. `SWING_LOOKBACK = 3` (`constants/index.ts:17`).
 - `features/screener/utils/maSeries.ts:36` — `buildDynamicMaSeries`: wraps `technicalindicators`' `SMA.calculate` and left-pads each series so index `k` lines up with `closes[k]` (the library's own output is 0-based and `period - 1` shorter).
 - `features/screener/utils/arrayAt.ts:4` — `at()`: a bounds-checked array accessor used everywhere indices are "known safe" (e.g. straight from `findSwingLowIndices` on the same array), to satisfy TypeScript's `noUncheckedIndexedAccess` without scattering non-null assertions.
@@ -93,7 +94,7 @@ Shared building blocks:
 Everything below `useScreener()`'s response lives entirely in `app/pages/screener/index.vue` as Vue `computed` refs — there is no second API call:
 
 - **Filters** (`index.vue:34-114`): free-text symbol/name search, last-close min/max range, and multi-select chips for criteria, confidence, and conviction. All combine with AND semantics (`filteredResults`, `index.vue:116`).
-- **Sorting** (`index.vue:128-176`): by symbol, last close, conviction (via `CONVICTION_RANK`), or match count. Toggled via `ScreenerSortableHeader` (`features/screener/components/SortableHeader.vue`), which just emits a `sort` event — the parent owns direction state.
+- **Sorting** (`index.vue:128-176`): by symbol, price, conviction (via `CONVICTION_RANK`), or match count. Toggled via `ScreenerSortableHeader` (`features/screener/components/SortableHeader.vue`), which just emits a `sort` event — the parent owns direction state.
 - **Column filter popovers**: `features/screener/components/ColumnFilterPopover.vue` — a `Teleport`-to-body popover positioned via `getBoundingClientRect()`, closed on outside click (`onClickOutside`) or scroll (`useEventListener`), both from `@vueuse/core`.
 - **Export** (`features/screener/utils/exportResults.ts:70`): `downloadResults(sortedResults, format)` — exports exactly what's currently sorted/filtered on screen, as CSV (hand-rolled, RFC-4180-ish escaping) or XLSX (via the `xlsx` package). Triggers a browser download via an in-memory `<a download>` anchor + `URL.createObjectURL`.
 
@@ -141,6 +142,7 @@ Response (`ScreenerResponse`, `features/screener/types/index.ts:28`):
 Product pitch, setup, and known limitations: [repo README](../../../../README.md).
 
 ## See Also
+
 - [Config & Runtime](../cross-cutting/config-and-runtime/README.md) — where `defaultBars` / `maMelilitThresholdPct` / `Screener*`-prefixed component auto-registration come from.
 - [Shared & Theming](../cross-cutting/shared-and-theming/README.md) — `idxTickers.json` provenance, layout shell.
 - [Testing & Quality](../cross-cutting/testing-and-quality/README.md) — how detectors and utils are unit-tested.

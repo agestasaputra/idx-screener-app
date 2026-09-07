@@ -4,7 +4,7 @@ import { CRITERIA_LABELS } from "../constants";
 
 export type ExportFormat = "csv" | "xlsx";
 
-const HEADERS = ["Symbol", "Name", "Sector", "Last Close", "Matches"] as const;
+const HEADERS = ["Symbol", "Name", "Sector", "Price", "Matches"] as const;
 
 type ExportRow = Record<(typeof HEADERS)[number], string | number>;
 
@@ -19,7 +19,7 @@ function toExportRows(results: ScreenerResult[]): ExportRow[] {
     Symbol: result.symbol,
     Name: result.name,
     Sector: result.sector ?? "",
-    "Last Close": result.lastClose,
+    Price: result.lastClose,
     Matches: formatMatches(result),
   }));
 }

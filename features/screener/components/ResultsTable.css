@@ -44,6 +44,27 @@ td {
   white-space: nowrap;
 }
 
+.price {
+  font-weight: 600;
+}
+
+.price-change {
+  font-size: 0.8rem;
+  color: var(--color-text-tertiary);
+}
+
+.price-change--up {
+  color: var(--color-success);
+}
+
+.price-change--down {
+  color: var(--color-danger);
+}
+
+.price-change__arrow {
+  display: inline-block;
+}
+
 .col-sector {
   color: var(--color-text-secondary);
   white-space: nowrap;

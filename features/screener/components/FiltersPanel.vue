@@ -38,7 +38,7 @@ const maxClose = defineModel<number | null>("maxClose", { default: null });
     </div>
 
     <div class="filter-section">
-      <p class="popover-panel__label">Last close range</p>
+      <p class="popover-panel__label">Price range</p>
       <div class="filter-range">
         <input
           v-model.number="minClose"

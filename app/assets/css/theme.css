@@ -18,6 +18,7 @@
   --color-accent-disabled: #1e3a5f;
   --color-accent-ring: rgba(96, 165, 250, 0.25);
   --color-danger: #f87171;
+  --color-success: #4ade80;
   --shadow-color: rgba(0, 0, 0, 0.45);
 
   --badge-high-bg: rgba(34, 197, 94, 0.18);
@@ -50,6 +51,7 @@
   --color-accent-disabled: #93c5fd;
   --color-accent-ring: rgba(37, 99, 235, 0.12);
   --color-danger: #b91c1c;
+  --color-success: #15803d;
   --shadow-color: rgba(15, 23, 42, 0.14);
 
   --badge-high-bg: #dcfce7;

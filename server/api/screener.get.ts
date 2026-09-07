@@ -133,11 +133,14 @@ function evaluateSymbol(
     detectBullishDivergence(closes),
   ].filter((match): match is NonNullable<typeof match> => match !== null);
 
+  const lastClose = at(closes, closes.length - 1);
+
   return {
     symbol,
     name: NAME_BY_SYMBOL.get(symbol) ?? symbol,
     sector,
-    lastClose: at(closes, closes.length - 1),
+    lastClose,
+    prevClose: closes.length > 1 ? at(closes, closes.length - 2) : lastClose,
     matches,
     sparkline,
   };

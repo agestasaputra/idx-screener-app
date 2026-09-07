@@ -14,6 +14,14 @@ const emit = defineEmits<{
   sort: [column: string];
   "clear-filters": [];
 }>();
+
+function priceChange(result: ScreenerResult): number {
+  return result.lastClose - result.prevClose;
+}
+
+function priceChangePct(result: ScreenerResult): number {
+  return result.prevClose === 0 ? 0 : (priceChange(result) / result.prevClose) * 100;
+}
 </script>
 
 <template>
@@ -36,7 +44,7 @@ const emit = defineEmits<{
               :direction="sortDirection"
               @sort="emit('sort', 'lastClose')"
             >
-              Last close
+              Price
             </ScreenerSortableHeader>
           </th>
           <th class="col-sector">
@@ -90,7 +98,26 @@ const emit = defineEmits<{
               <ScreenerPriceSparkline :values="result.sparkline" />
             </div>
           </td>
-          <td class="col-close">{{ result.lastClose.toFixed(0) }}</td>
+          <td class="col-close">
+            <div class="price">{{ result.lastClose.toFixed(0) }}</div>
+            <div
+              class="price-change"
+              :class="
+                priceChange(result) < 0
+                  ? 'price-change--down'
+                  : priceChange(result) > 0
+                    ? 'price-change--up'
+                    : ''
+              "
+            >
+              <span class="price-change__arrow">{{
+                priceChange(result) < 0 ? "↘" : priceChange(result) > 0 ? "↗" : ""
+              }}</span>
+              {{ Math.abs(priceChange(result)).toFixed(0) }} ({{
+                priceChangePct(result).toFixed(2)
+              }}%)
+            </div>
+          </td>
           <td class="col-sector">{{ result.sector ?? "—" }}</td>
           <td class="col-matched">
             {{ result.matches.length }}/{{ criteriaOptions.length }}
