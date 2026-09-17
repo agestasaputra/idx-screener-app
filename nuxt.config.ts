@@ -39,4 +39,11 @@ export default defineNuxtConfig({
       defaultBars,
     },
   },
+
+  nitro: {
+    // Memaksa Nitro memasukkan module xlsx langsung ke dalam bundel server
+    externals: {
+      inline: ["xlsx"],
+    },
+  },
 });
